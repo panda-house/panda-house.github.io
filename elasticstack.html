@@ -3,11 +3,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="description" content="本实验室本着跟踪最新技术和开放的原则，旨在通过纯干货的实操练习，提高运维人员的技术能力。">
+<meta name="description" content="Elastic Stack 包含 Elastic Stack、Logstash、Kibana 和 Beats 等组件，是一个非常流行的开源软件。它主要的应用场景包括：企业搜索/业务搜索、可观测性和信息安全管理。">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="generator" content="熊猫实验室">
-<meta name="application-name" content="熊猫实验室">
-<link rel="canonical" href="https://example.com/">
+<meta name="generator" content="Elastic Stack">
+<meta name="application-name" content="Elastic Stack">
+<link rel="canonical" href="https://example.com/elasticstack/">
 <link rel="preconnect" href="https://www.google-analytics.com">
 <script>
 window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
@@ -15,14 +15,14 @@ window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
     ga('send', 'pageview');
 </script>
 <script async src="https://www.google-analytics.com/analytics.js"></script>
-<title>熊猫实验室</title>
+<title>Elastic Stack</title>
 <link rel="stylesheet" href="/styles/main.css">
 <link rel="import" href="/elements/elements.html">
 <style is="custom-style">
 :root{--paper-tabs-selection-bar-color:currentcolor;--paper-input-container-underline:{display:none};--paper-input-container-underline-focus:{display:none};}.dropdown-filter{--paper-input-container:{padding:8px}} </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="#455a64">
-<meta name="apple-mobile-web-app-title" content="熊猫实验室">
+<meta name="apple-mobile-web-app-title" content="Elastic Stack">
 <link rel="apple-touch-icon" sizes="180x180" href="/images/favicons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/images/favicons/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="194x194" href="/images/favicons/favicon-194x194.png">
@@ -34,9 +34,9 @@ window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
 <meta name="msapplication-TileImage" content="/images/favicons/mstile-144x144.png">
 <meta name="theme-color" content="#455a64">
 <meta name="og:type" property="og:type" content="website">
-<meta name="og:title" property="og:title" content="熊猫实验室">
-<meta name="og:description" property="og:description" content="本实验室本着跟踪最新技术和开放的原则，旨在通过纯干货的实操练习，提高运维人员的技术能力。">
-<meta name="og:url" property="og:url" content="https://example.com/">
+<meta name="og:title" property="og:title" content="Elastic Stack">
+<meta name="og:description" property="og:description" content="Elastic Stack 包含 Elastic Stack、Logstash、Kibana 和 Beats 等组件，是一个非常流行的开源软件。它主要的应用场景包括：企业搜索/业务搜索、可观测性和信息安全管理。">
+<meta name="og:url" property="og:url" content="https://example.com/elasticstack/">
 <meta name="og:site_name" property="og:site_name" content="Codelabs">
 <meta name="og:determiner" property="og:determiner" content="the">
 <meta name="og:locale" property="og:locale" content="en_US">
@@ -47,12 +47,12 @@ window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
 <meta name="og:image:height" property="og:image:height" content="1200">
 <meta name="og:image:alt" property="og:image:alt" content="Codelabs">
 <meta name="twitter:card" property="twitter:card" content="summary_large_image">
-<meta name="twitter:title" property="twitter:title" content="熊猫实验室">
-<meta name="twitter:description" property="twitter:description" content="本实验室本着跟踪最新技术和开放的原则，旨在通过纯干货的实操练习，提高运维人员的技术能力。">
+<meta name="twitter:title" property="twitter:title" content="Elastic Stack">
+<meta name="twitter:description" property="twitter:description" content="Elastic Stack 包含 Elastic Stack、Logstash、Kibana 和 Beats 等组件，是一个非常流行的开源软件。它主要的应用场景包括：企业搜索/业务搜索、可观测性和信息安全管理。">
 <meta name="twitter:image" property="twitter:image" content="/images/og-image.png">
-<meta name="twitter:url" property="twitter:url" content="https://example.com/">
+<meta name="twitter:url" property="twitter:url" content="https://example.com/elasticstack/">
 </head>
-<body id="app" is="body-bind" class="loading fullbleed">
+<body id="app" is="body-bind" class="loading fullbleed view">
 <paper-header-panel id="main" mode="standard" main>
 <div id="mainToolbar" class="paper-header">
 <div class="site-width layout horizontal">
@@ -68,14 +68,14 @@ window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
 </div>
 </div>
 </div>
-<header id="banner" down$="[[_toBoolean(selectedFilter)]]">
+<header id="banner" down>
 <div class="site-width">
-<h2 class="banner-title">熊猫实验室</h2>
-<div class="banner-description" data-filter-selected$="[[_toBoolean(selectedFilter)]]">
-<p class="banner-info">
-本实验室本着跟踪最新技术和开放的原则，旨在通过纯干货的实操练习，提高运维人员的技术能力。
-<br>
-</p>
+<div class="banner-description">
+<img id="logo" src="/elasticstack/ElasticStack.svg" alt="Event logo">
+<div class="banner-meta">
+<h3>Elastic Stack</h3>
+<p>Elastic Stack 包含 Elastic Stack、Logstash、Kibana 和 Beats 等组件，是一个非常流行的开源软件。它主要的应用场景包括：企业搜索/业务搜索、可观测性和信息安全管理。</p>
+</div>
 </div>
 </div>
 </header>
@@ -88,15 +88,9 @@ window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
 <paper-tab>操作时长</paper-tab>
 </paper-tabs>
 </div>
-<paper-dropdown-menu label="目录" class="dropdown-filter" no-label-float noink no-animations>
-<paper-listbox id="eventList" slot="dropdown-content" class="dropdown-content"><a href="/elasticstack/" tabindex="-1">
-<paper-item>Elastic Stack</paper-item>
-</a>
-</paper-listbox>
-</paper-dropdown-menu>
 </div>
 <card-sorter id="cards" class="site-width">
-<a href="/codelabs/one-nodes-es-server/index.html?index=..%2F..index" on-tap="navigate" class="codelab-card category-elasticsearch" data-category="elasticsearch" data-title="搭建单节点 Elasticsearch 集群服务" data-duration="36" data-updated="2020-12-28T23:03:53+08:00" data-tags="elasticstack" data-pin="">
+<a href="/codelabs/one-nodes-es-server/index.html?index=..%2F..elasticstack" on-tap="navigate" class="codelab-card category-elasticsearch" data-category="elasticsearch" data-title="搭建单节点 Elasticsearch 集群服务" data-duration="36" data-updated="2020-12-28T23:03:53+08:00" data-tags="elasticstack" data-pin="">
 <div class="description">搭建单节点 Elasticsearch 集群服务</div>
 <div class="card-duration">
 <span>36 min </span>
