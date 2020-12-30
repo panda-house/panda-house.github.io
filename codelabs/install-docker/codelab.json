@@ -1,0 +1,25 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2020-12-30T16:49:50+08:00",
+  "id": "install-docker",
+  "duration": 0,
+  "title": "在CentOS上安装Docker",
+  "authors": "balladpanda",
+  "summary": "在CentOS上安装Docker",
+  "source": "install-docker.md",
+  "theme": "",
+  "status": [
+    "published"
+  ],
+  "category": [
+    "containers"
+  ],
+  "tags": [
+    "docker"
+  ],
+  "feedback": "https://debris.cn/",
+  "url": "install-docker"
+}

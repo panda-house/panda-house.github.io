@@ -1,0 +1,118 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>在CentOS上安装Docker</title>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://storage.googleapis.com/codelab-elements/codelab-elements.css">
+  <style>
+    .success {
+      color: #1e8e3e;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <google-codelab-analytics gaid="UA-49880327-14"></google-codelab-analytics>
+  <google-codelab codelab-gaid=""
+                  id="install-docker"
+                  title="在CentOS上安装Docker"
+                  environment="web"
+                  feedback-link="https://debris.cn/">
+    
+      <google-codelab-step label="前置条件" duration="0">
+        <aside class="warning"><p>注意：开始实验前请确保服务器是处于一个干净的环境，避免其他版本的残留。</p>
+</aside>
+<h2 is-upgraded>申请镜像加速</h2>
+<p>默认Docker会从dockerhub拉取镜像，介于国际网络等问题会出现速度慢、超时等问题，我们先申请一个镜像加速地址</p>
+<h3 is-upgraded>方法一</h3>
+<p>公共加速地址：</p>
+<ul>
+<li>Docker中国区官方镜像：https://registry.docker-cn.com</li>
+<li>网易：http://hub-mirror.c.163.com</li>
+<li>ustc：https://docker.mirrors.ustc.edu.cn</li>
+<li>中国科技大学：https://docker.mirrors.ustc.edu.cn</li>
+</ul>
+<h2 is-upgraded>方法二</h2>
+<p>通过阿里云生成自己专属的加速地址 登录：https://cr.console.aliyun.com/</p>
+<p class="image-container"><img alt="image-20201230163831162" src="img/a132a56996c3838a.png"></p>
+<h2 is-upgraded>卸载旧版本</h2>
+<pre><code language="language-shell" class="language-shell">sudo yum remove docker \
+                docker-client \
+                docker-client-latest \
+                docker-common \
+                docker-latest \
+                docker-latest-logrotate \
+                docker-logrotate \
+                docker-engine
+</code></pre>
+<h2 is-upgraded>安装国内Docker镜像源</h2>
+<pre><code>sudo yum install -y yum-utils
+sudo yum-config-manager \
+    --add-repo \
+    https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Setp1：安装Docker引擎" duration="0">
+        <pre><code>sudo yum install docker-ce docker-ce-cli containerd.io
+</code></pre>
+<p>选择版本</p>
+<pre><code>yum list docker-ce --showduplicates | sort -r
+</code></pre>
+<p>根据上述版本，替换VERSION_STRING</p>
+<pre><code>sudo yum install docker-ce-&lt;VERSION_STRING&gt; docker-ce-cli-&lt;VERSION_STRING&gt; containerd.io
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Setp2 启动Docker" duration="0">
+        <pre><code>sudo systemctl start docker
+sudo systemctl enable docker
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Setp3 配置镜像加速" duration="0">
+        <p>根据我们手上的加速地址，执行以下命令，添加国内镜像加速。</p>
+<pre><code>sudo mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json &lt;&lt;-&#39;EOF&#39;
+{
+  &#34;registry-mirrors&#34;: [&#34;https://xad6i9zy.mirror.aliyuncs.com&#34;]
+}
+EOF
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Setp4 验证Docker" duration="0">
+        <pre><code>docker version
+</code></pre>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script src="https://storage.googleapis.com/codelab-elements/native-shim.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/custom-elements.min.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/prettify.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/codelab-elements.js"></script>
+  <script src="//support.google.com/inapp/api.js"></script>
+
+</body>
+</html>
