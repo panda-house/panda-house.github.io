@@ -1,0 +1,28 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2021-01-11T11:03:22+08:00",
+  "id": "elastic-observability-foundation",
+  "duration": 160,
+  "title": "Elastic Stack 可观测性实战工作坊",
+  "authors": "Martin Liu",
+  "summary": "",
+  "source": "elastic-observability-foundation.md",
+  "theme": "",
+  "status": [
+    "published"
+  ],
+  "category": [
+    "elasticsearch",
+    "beats",
+    "kibana",
+    "observability"
+  ],
+  "tags": [
+    "elasticstack"
+  ],
+  "feedback": "https://martinliu.cn",
+  "url": "elastic-observability-foundation"
+}
