@@ -1,0 +1,27 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2021-01-14T23:10:08+08:00",
+  "id": "Container-install",
+  "duration": 35,
+  "title": "容器安装",
+  "authors": "balladpanda",
+  "summary": "",
+  "source": "容器安装.md",
+  "theme": "",
+  "status": [
+    "published"
+  ],
+  "category": [
+    "docker",
+    "podman",
+    "container"
+  ],
+  "tags": [
+    "container"
+  ],
+  "feedback": "debris.cn",
+  "url": "Container-install"
+}

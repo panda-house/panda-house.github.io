@@ -97,8 +97,24 @@ window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
 </a>
 </paper-listbox>
 </paper-dropdown-menu>
-</div>
+<paper-dropdown-menu label="Filter by category" class="dropdown-filter" no-label-float noink no-animations>
+<paper-listbox id="categorylist" slot="dropdown-content" class="dropdown-content" on-iron-activate="onCategoryActivate" attr-for-selected="filter">
+<paper-item filter="docker">docker</paper-item>
+<paper-item filter="elasticsearch">elasticsearch</paper-item>
+</paper-listbox>
+</paper-dropdown-menu></div>
 <card-sorter id="cards" class="site-width">
+<a href="/codelabs/Container-install/index.html?index=..%2F..index" on-tap="navigate" class="codelab-card category-docker" data-category="docker,podman,container" data-title="容器安装" data-duration="35" data-updated="2021-01-14T23:10:08+08:00" data-tags="container" data-pin="">
+<div class="description">容器安装</div>
+<div class="card-duration">
+<span>35 min </span>
+<span>Updated Jan 14, 2021</span>
+</div>
+<div class="card-footer">
+<div class="category-icon docker-icon"></div>
+<paper-button class="docker-bg">Start</paper-button>
+</div>
+</a>
 <a href="/codelabs/elastic-observability-foundation/index.html?index=..%2F..index" on-tap="navigate" class="codelab-card category-elasticsearch" data-category="elasticsearch,beats,kibana,observability" data-title="Elastic Stack 可观测性实战工作坊" data-duration="160" data-updated="2021-01-11T11:03:22+08:00" data-tags="elasticstack" data-pin="">
 <div class="description">Elastic Stack 可观测性实战工作坊</div>
 <div class="card-duration">
