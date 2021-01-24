@@ -1,0 +1,25 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2021-01-15T14:07:54+08:00",
+  "id": "codelabs-env",
+  "duration": 17,
+  "title": "codelabs环境搭建",
+  "authors": "Aaron",
+  "summary": "搭建codelabs环境",
+  "source": "my.md",
+  "theme": "",
+  "status": [
+    "published"
+  ],
+  "category": [
+    "codelabs-env"
+  ],
+  "tags": [
+    "codelabs"
+  ],
+  "feedback": "www.baidu.com",
+  "url": "codelabs-env"
+}

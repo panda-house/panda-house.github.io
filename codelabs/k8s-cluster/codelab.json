@@ -1,0 +1,25 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2021-01-20T10:32:15+08:00",
+  "id": "k8s-cluster",
+  "duration": 12,
+  "title": "k8s集群一键安装",
+  "authors": "Aaron",
+  "summary": "k8s集群安装",
+  "source": "k8s.md",
+  "theme": "",
+  "status": [
+    "published"
+  ],
+  "category": [
+    "k8s-cluster"
+  ],
+  "tags": [
+    "k8s"
+  ],
+  "feedback": "http://#",
+  "url": "k8s-cluster"
+}
