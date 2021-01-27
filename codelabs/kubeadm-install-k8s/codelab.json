@@ -1,0 +1,28 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2021-01-21T22:32:46+08:00",
+  "id": "kubeadm-install-k8s",
+  "duration": 0,
+  "title": "使用kubeadm部署单节点Kubernetes",
+  "authors": "balladpanda",
+  "summary": "",
+  "source": "使用kubeadm部署单节点Kubernetes.md",
+  "theme": "",
+  "status": [
+    "published"
+  ],
+  "category": [
+    "docker",
+    "k8s",
+    "container",
+    "cloudnative"
+  ],
+  "tags": [
+    "kubernetes"
+  ],
+  "feedback": "https://debris.cn",
+  "url": "kubeadm-install-k8s"
+}

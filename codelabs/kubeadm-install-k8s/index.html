@@ -1,0 +1,378 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>使用kubeadm部署单节点Kubernetes</title>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://storage.googleapis.com/codelab-elements/codelab-elements.css">
+  <style>
+    .success {
+      color: #1e8e3e;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <google-codelab-analytics gaid="UA-49880327-14"></google-codelab-analytics>
+  <google-codelab codelab-gaid=""
+                  id="kubeadm-install-k8s"
+                  title="使用kubeadm部署单节点Kubernetes"
+                  environment="web"
+                  feedback-link="https://debris.cn">
+    
+      <google-codelab-step label="环境准备" duration="0">
+        <p>确保每个节点上 MAC 地址和 product_uuid 的唯一性</p>
+<ul>
+<li>你可以使用命令 <code>ip link</code> 或 <code>ifconfig -a</code> 来获取网络接口的 MAC 地址</li>
+<li>可以使用 <code>sudo cat /sys/class/dmi/id/product_uuid</code> 命令对 product_uuid 校验</li>
+</ul>
+<p>一般来讲，硬件设备会拥有唯一的地址，但是有些虚拟机的地址可能会重复。 Kubernetes使用这些值来唯一确定集群中的节点。 如果这些值在每个节点上不唯一，可能会导致安装失败。</p>
+<h2 is-upgraded>服务器信息</h2>
+<table>
+<tr><td colspan="1" rowspan="1"><p>IP地址</p>
+</td><td colspan="1" rowspan="1"><p>角色</p>
+</td><td colspan="1" rowspan="1"><p>CPU</p>
+</td><td colspan="1" rowspan="1"><p>内存</p>
+</td><td colspan="1" rowspan="1"><p>主机名（hostname）</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>172.16.2.246</p>
+</td><td colspan="1" rowspan="1"><p>master and  etcd</p>
+</td><td colspan="1" rowspan="1"><p>4</p>
+</td><td colspan="1" rowspan="1"><p>8</p>
+</td><td colspan="1" rowspan="1"><p>k8s-master01</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>172.16.2.247</p>
+</td><td colspan="1" rowspan="1"><p>work node</p>
+</td><td colspan="1" rowspan="1"><p>4</p>
+</td><td colspan="1" rowspan="1"><p>8</p>
+</td><td colspan="1" rowspan="1"><p>k8s-work01</p>
+</td></tr>
+</table>
+<h2 is-upgraded>软件版本</h2>
+<table>
+<tr><td colspan="1" rowspan="1"><p>操作系统</p>
+</td><td colspan="1" rowspan="1"><p>系统内核版本</p>
+</td><td colspan="1" rowspan="1"><p>Kubernetes版本</p>
+</td><td colspan="1" rowspan="1"><p>docker版本</p>
+</td><td colspan="1" rowspan="1"><p>kubectl版本</p>
+</td><td colspan="1" rowspan="1"><p>kubeadm版本</p>
+</td><td colspan="1" rowspan="1"><p>kubelet版本</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>CentOS7.9.2009</p>
+</td><td colspan="1" rowspan="1"><p>5.10.7</p>
+</td><td colspan="1" rowspan="1"><p>1.19.7</p>
+</td><td colspan="1" rowspan="1"><p>19.03.9</p>
+</td><td colspan="1" rowspan="1"><p>1.19.7</p>
+</td><td colspan="1" rowspan="1"><p>1.19.7</p>
+</td><td colspan="1" rowspan="1"><p>1.19.7</p>
+</td></tr>
+</table>
+<aside class="warning"><p>注意：这里采用的软件版本，请大家严格保持一致！开源软件，版本非常敏感和重要！ kubernetes版本要求参考地址：<br> https://github.com/kubernetes/kubernetes/tree/master/CHANGELOG https://kubernetes.io/docs/setup/release/version-skew-policy/</p>
+</aside>
+<h2 is-upgraded>环境初始化操作</h2>
+<h3 is-upgraded>配置hostname</h3>
+<p>根据服务器实际名称替换<code>$master</code>、<code>$node</code>的值</p>
+<pre><code>hostnamectl set-hostname $master
+hostnamectl set-hostname $node
+</code></pre>
+<aside class="warning"><p>注意：hostname不能有大写字母，还有其他的特殊符号，也不要有<code>_</code>，否则后面初始化会报错。</p>
+</aside>
+<h3 is-upgraded>配置/etc/hosts</h3>
+<p>注意，hosts文件非常重要 修改配置文件</p>
+<pre><code>vi /etc/hosts
+</code></pre>
+<p>添加以下内容</p>
+<pre><code>172.16.2.246 k8s-master01
+172.16.2.247 k8s-work01
+</code></pre>
+<h3 is-upgraded>关闭防火墙</h3>
+<pre><code>systemctl stop firewalld
+systemctl disable firewalld
+</code></pre>
+<h3 is-upgraded>关闭swap分区</h3>
+<pre><code>swapoff -a
+sed -i &#39;s/.*swap.*/#&amp;/&#39; /etc/fstab
+</code></pre>
+<h3 is-upgraded>关闭selinux</h3>
+<pre><code>setenforce  0
+sed -i &#34;s/^SELINUX=enforcing/SELINUX=disabled/g&#34; /etc/sysconfig/selinux
+sed -i &#34;s/^SELINUX=enforcing/SELINUX=disabled/g&#34; /etc/selinux/config
+sed -i &#34;s/^SELINUX=permissive/SELINUX=disabled/g&#34; /etc/sysconfig/selinux
+sed -i &#34;s/^SELINUX=permissive/SELINUX=disabled/g&#34; /etc/selinux/config  
+</code></pre>
+<h3 is-upgraded>加载br_netfilter</h3>
+<pre><code>modprobe br_netfilter
+</code></pre>
+<p>或者</p>
+<pre><code>cat &lt;&lt;EOF | sudo tee /etc/modules-load.d/k8s.conf
+br_netfilter
+EOF
+</code></pre>
+<h3 is-upgraded>配置内核参数</h3>
+<pre><code>cat &gt; /etc/sysctl.d/k8s.conf &lt;&lt;EOF
+net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+</code></pre>
+<h3 is-upgraded>生效内核配置文件</h3>
+<pre><code>sysctl -p /etc/sysctl.d/k8s.conf
+
+</code></pre>
+<h3 is-upgraded>修改Linux资源配置文件，调高<code>ulimit</code>最大打开数和systemctl管理的服务文件最大打开数</h3>
+<pre><code>echo &#34;* soft nofile 655360&#34; &gt;&gt; /etc/security/limits.conf
+echo &#34;* hard nofile 655360&#34; &gt;&gt; /etc/security/limits.conf
+echo &#34;* soft nproc 655360&#34;  &gt;&gt; /etc/security/limits.conf
+echo &#34;* hard nproc 655360&#34;  &gt;&gt; /etc/security/limits.conf
+echo &#34;* soft  memlock  unlimited&#34;  &gt;&gt; /etc/security/limits.conf
+echo &#34;* hard memlock  unlimited&#34;  &gt;&gt; /etc/security/limits.conf
+echo &#34;DefaultLimitNOFILE=1024000&#34;  &gt;&gt; /etc/systemd/system.conf 
+echo &#34;DefaultLimitNPROC=1024000&#34;  &gt;&gt; /etc/systemd/system.conf
+</code></pre>
+<h3 is-upgraded>配置k8s介质yum源</h3>
+<pre><code>cat &lt;&lt;EOF &gt; /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
+EOF
+</code></pre>
+<h3 is-upgraded>安装依赖软件包</h3>
+<pre><code>yum install  -y conntrack ipvsadm ipset jq sysstat curl iptables libseccomp bash-completion yum-utils device-mapper-persistent-data lvm2 net-tools conntrack-tools vim libtool-ltdl
+</code></pre>
+<h3 is-upgraded>时间同步配置</h3>
+<p>Kubernetes是分布式的，各个节点系统时间需要同步对应上。</p>
+<pre><code>yum install chrony –y
+systemctl enable chronyd.service &amp;&amp; systemctl start chronyd.service &amp;&amp; systemctl status chronyd.service
+chronyc sources
+</code></pre>
+<h3 is-upgraded>配置节点间ssh互信</h3>
+<p>配置ssh互信，那么节点之间就能无密访问，方便日后执行自动化部署. 每台机器执行这个命令，一路回车即可</p>
+<pre><code>ssh-keygen 
+</code></pre>
+<p>将master上的公钥拷贝到其他节点，替换<code>node</code>名称,这里需要同意输入yes和密码</p>
+<pre><code>ssh-copy-id  $node      
+</code></pre>
+<h3 is-upgraded>初始化环境配置检查</h3>
+<ul>
+<li>重启，做完以上所有操作，最好reboot重启一遍</li>
+<li>ping 每个节点hostname 看是否能ping通</li>
+<li>ssh 对方hostname看互信是否无密码访问成功</li>
+<li>执行date命令查看每个节点时间是否正确</li>
+<li>执行 ulimit -Hn 看下最大文件打开数是否是655360</li>
+<li>cat /etc/sysconfig/selinux |grep disabled 查看下每个节点selinux是否都是disabled状态</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="docker安装" duration="0">
+        <p>参考：<a href="https://pandahoues.github.io/codelabs/Container-install" target="_blank">docker安装</a></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="安装kubeadm等工具" duration="0">
+        <p>这一步是所有节点都得安装（包括node节点），可以 工具说明：</p>
+<ul>
+<li>kubeadm: 部署集群用的命令</li>
+<li>kubelet: 在集群中每台机器上都要运行的组件，负责管理pod、容器的生命周期</li>
+<li>kubectl: 集群管理工具</li>
+</ul>
+<h2 is-upgraded>安装工具</h2>
+<p>查询kube系列工具的版本号</p>
+<pre><code>yum list `kubeadm` --showduplicates | sort -r`
+</code></pre>
+<p>安装kube系列工具</p>
+<pre><code>yum install -y kubelet-1.19.7 kubeadm-1.19.7 kubectl-1.19.7 --disableexcludes=kubernetes
+</code></pre>
+<h2 is-upgraded>启动kubelet</h2>
+<pre><code>systemctl enable kubelet &amp;&amp; systemctl start kubelet
+systemctl enable --now kubelet
+</code></pre>
+<aside class="warning"><p>提示：此时kubelet的服务运行状态是异常的，因为缺少主配置文件kubelet.conf。但可以暂不处理，因为在完成Master节点的初始化后才会生成这个配置文件。</p>
+</aside>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="镜像下载准备" duration="0">
+        <h2 is-upgraded>查询镜像列表</h2>
+<pre><code>kuebeadm config  images list
+</code></pre>
+<h2 is-upgraded>生成默认<code>kubeadm.conf</code>文件</h2>
+<pre><code>kubeadm config print init-defaults &gt; kubeadm.conf      
+</code></pre>
+<h2 is-upgraded>绕过墙下载镜像方法（注意认真看，后期版本安装也可以套用这方法）</h2>
+<p>注意这个配置文件默认会从google的镜像仓库地址k8s.gcr.io下载镜像，如果你没有科学上网，那么就会下载不来。因此，我们通过下面的方法把地址改成国内的，比如用阿里的。</p>
+<p>替换镜像仓库地址</p>
+<pre><code>sed -i &#39;s!imageRepository: k8s.gcr.io!imageRepository: registry.aliyuncs.com/google_containers!g&#39; kubeadm.conf
+</code></pre>
+<p>替换版本号</p>
+<pre><code>sed -i &#34;s/kubernetesVersion: .*/kubernetesVersion: v1.19.7/g&#34; kubeadm.conf
+</code></pre>
+<p>下载镜像</p>
+<pre><code>kubeadm config images pull --config kubeadm.conf
+</code></pre>
+<p>修改镜像前缀脚本 通过脚本将<code>registry.aliyuncs.com</code>开头的镜像重命名为<code>k8s.gcr.io</code>，或者手动通过<code>docker tag</code>命令。这样安装程序才能识别到。</p>
+<pre><code>vi image-rename.sh
+</code></pre>
+<p>添加以下内容</p>
+<pre><code>#!/bin/bash
+images=(kube-apiserver:v1.19.7 kube-controller-manager:v1.19.7 kube-scheduler:v1.19.7 kube-proxy:v1.19.7
+pause:3.2 etcd:3.4.13-0 coredns:1.7.0)
+for imageName in ${images[@]} ; do
+  docker tag registry.aliyuncs.com/google_containers/$imageName k8s.gcr.io/$imageName
+  docker rmi registry.aliyuncs.com/google_containers/$imageName
+done
+</code></pre>
+<p>检查镜像</p>
+<pre><code>docker image ls 
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="部署master节点" duration="0">
+        <h2 is-upgraded><code>kubeadm init</code>初始化master节点</h2>
+<pre><code>kubeadm init --kubernetes-version=v1.19.7 --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=172.16.2.246
+</code></pre>
+<aside class="special"><p>这里我们定义POD的网段为: 192.168.0.0/16 ,然后api server地址就是master本机IP地址。</p>
+</aside>
+<p>初始化成功后，/etc/kubernetes/ 会生成下面文件,同时最后会生成一句话,这个我们记录下,到时候添加node的时候要用到。</p>
+<pre><code>kubeadm join 172.16.2.246:6443 --token osvv1g.7hlo28nnvgdcodiu \
+    --discovery-token-ca-cert-hash sha256:a19172e1f2e029b742a8c74391522fc241fde587f511e098abd17aad39c95176
+</code></pre>
+<h2 is-upgraded>验证测试</h2>
+<p>配置kubectl命令</p>
+<pre><code>mkdir -p /root/.kube
+cp /etc/kubernetes/admin.conf /root/.kube/config
+</code></pre>
+<p>执行获取pods列表命令，查看相关状态</p>
+<pre><code>kubectl get pods --all-namespaces
+</code></pre>
+<p>在安装网络之前,集群<code>DNS (CoreDNS)</code>将不会启动,处于Pending状态，这个先不管。 我们可以执行<code>kubectl get cs</code>查看集群的健康状态，会看到集群有<code>unhealthy</code>的状态，出现这种情况是kube-controller-manager.yaml和kube-scheduler.yaml设置的默认端口是0，在文件中注释掉就可以了。（每台master节点都要执行操作） <img alt="-w1092" src="img/119ad091c1484a32.jpg"></p>
+<h2 is-upgraded>修改kube-scheduler.yaml文件,注释<code>port=0</code>所在行</h2>
+<p><code>vim /etc/kubernetes/manifests/kube-scheduler.yaml</code> 参考内容如下:</p>
+<pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    component: kube-scheduler
+    tier: control-plane
+  name: kube-scheduler
+  namespace: kube-system
+spec:
+  containers:
+  - command:
+    - kube-scheduler
+    - --authentication-kubeconfig=/etc/kubernetes/scheduler.conf
+    - --authorization-kubeconfig=/etc/kubernetes/scheduler.conf
+    - --bind-address=127.0.0.1
+    - --kubeconfig=/etc/kubernetes/scheduler.conf
+    - --leader-elect=true
+#    - --port=0
+    image: k8s.gcr.io/kube-scheduler:v1.19.7
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+      failureThreshold: 8
+      httpGet:
+        host: 127.0.0.1
+        path: /healthz
+        port: 10259
+        scheme: HTTPS
+      initialDelaySeconds: 10
+      略...
+</code></pre>
+<h2 is-upgraded>修改kube-controller-manager.yaml文件，注释<code>port=0</code>所在行</h2>
+<p><code>vim /etc/kubernetes/manifests/kube-controller-manager.yaml</code> 参考内容如下:</p>
+<pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    component: kube-controller-manager
+    tier: control-plane
+  name: kube-controller-manager
+  namespace: kube-system
+spec:
+  containers:
+  - command:
+    - kube-controller-manager
+    - --allocate-node-cidrs=true
+    - --authentication-kubeconfig=/etc/kubernetes/controller-manager.conf
+    - --authorization-kubeconfig=/etc/kubernetes/controller-manager.conf
+    - --bind-address=127.0.0.1
+    - --client-ca-file=/etc/kubernetes/pki/ca.crt
+    - --cluster-cidr=192.168.10.0/24
+    - --cluster-name=kubernetes
+    - --cluster-signing-cert-file=/etc/kubernetes/pki/ca.crt
+    - --cluster-signing-key-file=/etc/kubernetes/pki/ca.key
+    - --controllers=*,bootstrapsigner,tokencleaner
+    - --kubeconfig=/etc/kubernetes/controller-manager.conf
+    - --leader-elect=true
+    - --node-cidr-mask-size=24
+#    - --port=0
+    - --requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt
+    - --root-ca-file=/etc/kubernetes/pki/ca.crt
+    - --service-account-private-key-file=/etc/kubernetes/pki/sa.key
+    - --service-cluster-ip-range=10.96.0.0/12
+    - --use-service-account-credentials=true
+    image: k8s.gcr.io/kube-controller-manager:v1.19.7
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+      failureThreshold: 8
+      httpGet:
+        host: 127.0.0.1
+        path: /healthz
+        port: 10257
+        scheme: HTTPS
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      略...
+</code></pre>
+<p>每台master重启kubelet</p>
+<pre><code>systemctl restart kubelet
+</code></pre>
+<p>再次查看状态</p>
+<pre><code>kubectl get cs
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="部署网络插件" duration="0">
+        <p>网络插件现在有<code>flannel</code>、<code>calico</code>等,我们此次采用<code>Flannel</code></p>
+<aside class="warning"><p>calico有2种中作模式: ipip(隧道方案)、bgp(路由方案),所以公有云<code>�</code>�能会对路由方案造成影响,并且有的云主机会禁止路由(bgp)方案,所以有些云厂商是禁止此实现方式的,因为他会写入路由表,这样可能会影响到厂商现有网络,这个需到你自己的环境实测才能百分百确认。</p>
+</aside>
+<h2 is-upgraded>安装<code>Flannel</code></h2>
+<pre><code>kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+</code></pre>
+<h2 is-upgraded>检查状态</h2>
+<pre><code>kubectl get pods --all-namespaces
+</code></pre>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script src="https://storage.googleapis.com/codelab-elements/native-shim.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/custom-elements.min.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/prettify.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/codelab-elements.js"></script>
+  <script src="//support.google.com/inapp/api.js"></script>
+
+</body>
+</html>
