@@ -177,7 +177,7 @@ chronyc sources
       </google-codelab-step>
     
       <google-codelab-step label="docker安装" duration="0">
-        <p>参考：<a href="https://pandahoues.github.io/codelabs/Container-install" target="_blank">docker安装</a></p>
+        <p>参考：<a href="https://gosre.io/codelabs/Container-install" target="_blank">docker安装</a></p>
 
 
       </google-codelab-step>
@@ -191,7 +191,7 @@ chronyc sources
 </ul>
 <h2 is-upgraded>安装工具</h2>
 <p>查询kube系列工具的版本号</p>
-<pre><code>yum list `kubeadm` --showduplicates | sort -r`
+<pre><code>yum list kubeadm --showduplicates | sort -r
 </code></pre>
 <p>安装kube系列工具</p>
 <pre><code>yum install -y kubelet-1.19.7 kubeadm-1.19.7 kubectl-1.19.7 --disableexcludes=kubernetes
@@ -208,7 +208,7 @@ systemctl enable --now kubelet
     
       <google-codelab-step label="镜像下载准备" duration="0">
         <h2 is-upgraded>查询镜像列表</h2>
-<pre><code>kuebeadm config  images list
+<pre><code>kubeadm config  images list
 </code></pre>
 <h2 is-upgraded>生成默认<code>kubeadm.conf</code>文件</h2>
 <pre><code>kubeadm config print init-defaults &gt; kubeadm.conf      
@@ -354,7 +354,7 @@ spec:
     
       <google-codelab-step label="部署网络插件" duration="0">
         <p>网络插件现在有<code>flannel</code>、<code>calico</code>等,我们此次采用<code>Flannel</code></p>
-<aside class="warning"><p>calico有2种中作模式: ipip(隧道方案)、bgp(路由方案),所以公有云<code>�</code>�能会对路由方案造成影响,并且有的云主机会禁止路由(bgp)方案,所以有些云厂商是禁止此实现方式的,因为他会写入路由表,这样可能会影响到厂商现有网络,这个需到你自己的环境实测才能百分百确认。</p>
+<aside class="warning"><p>calico有2种中作模式: ipip(隧道方案)、bgp(路由方案),所以公有云可能会对路由方案造成影响,并且有的云主机会禁止路由(bgp)方案,所以有些云厂商是禁止此实现方式的,因为他会写入路由表,这样可能会影响到厂商现有网络,这个需到你自己的环境实测才能百分百确认。</p>
 </aside>
 <h2 is-upgraded>安装<code>Flannel</code></h2>
 <pre><code>kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
@@ -362,6 +362,145 @@ spec:
 <h2 is-upgraded>检查状态</h2>
 <pre><code>kubectl get pods --all-namespaces
 </code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="部署node节点" duration="0">
+        <p>前置条件:已经安装容器以及系统配置调整 参考master节点下载镜像的方法，下载node需要的镜像，避免因网络因素下载不了镜像 下载镜像:</p>
+<pre><code>docker pull registry.aliyuncs.com/google_containers/kube-proxy:v1.19.7
+docker pull registry.aliyuncs.com/google_containers/pause:3.2
+docker pull quay.io/coreos/flannel:v0.14.0 
+</code></pre>
+<p>重命名镜像:</p>
+<pre><code>docker tag registry.aliyuncs.com/google_containers/kube-proxy:vv1.19.7 k8s.gcr.io/kube-proxy:vv1.19.7
+docker tag registry.aliyuncs.com/google_containers/pause:3.2 k8s.gcr.io/pause:3.2
+</code></pre>
+<p>加入集群（master节点复制命令）</p>
+<pre><code>kubeadm join 172.16.2.245:6443 --token iele66.4yfkoclhem70fhq2 \
+        --discovery-token-ca-cert-hash sha256:9e0a9d3118ed41465b7321f3d3e0fba99e6dbd3c372164fab3398c004febe62a
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="检查状态" duration="0">
+        <p>在master节点执行</p>
+<pre><code>kubectl get nodes
+kubectl get pods -n kube-system -o wide
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="部署Dashboard（一）" duration="0">
+        <p>Dashboard 2.0之后的版本，只允许用https访问，Chrome浏览器不允许没有证书的网站使用https访问，所以这次我们采用配置自签证书。</p>
+<h2 is-upgraded>配置自签证书</h2>
+<h3 is-upgraded>生成私钥和证书签名请求</h3>
+<p>(这里crt、key的文件名一定要叫dashboard,不然证书会无效)</p>
+<pre><code>mkdir -p /etc/kubernetes/certs 
+cd  /etc/kubernetes/certs
+openssl genrsa -des3 -passout pass:x -out dashboard.pass.key 2048
+openssl rsa -passin pass:x -in dashboard.pass.key -out dashboard.key
+</code></pre>
+<h3 is-upgraded>删除生成的dashboard.pass.key</h3>
+<pre><code>rm -rf dashboard.pass.key
+</code></pre>
+<h3 is-upgraded>生成dashboard.csr</h3>
+<pre><code>openssl req -new -key dashboard.key -out dashboard.csr
+</code></pre>
+<h3 is-upgraded>生成SSL证书</h3>
+<p>dashboard.crt文件是适用于仪表板和dashboard.key私钥的证书</p>
+<pre><code>openssl x509 -req -sha256 -days 365 -in dashboard.csr -signkey dashboard.key -out dashboard.crt
+</code></pre>
+<h3 is-upgraded>创建secret</h3>
+<p>注意/etc/kubernetes/certs 是之前创建crt、csr、key 证书文件存放的路径</p>
+<pre><code>kubectl create secret generic kubernetes-dashboard-certs --from-file=/etc/kubernetes/certs -n kube-system
+</code></pre>
+<h3 is-upgraded>查看secret</h3>
+<pre><code>kubectl get secret kubernetes-dashboard-certs -n kubernetes-dashboard -o yaml
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="部署Dashboard(二)" duration="0">
+        <p>根据k8s版本选择对应的daashboard版本，参考地址：https://github.com/kubernetes/dashboard/releases</p>
+<h2 is-upgraded>下载yaml文件</h2>
+<pre><code>wget https://raw.githubusercontent.com/kubernetes/dashboard/v2.3.1/aio/deploy/recommended.yaml
+</code></pre>
+<h2 is-upgraded>将名称空间修改为kube-system</h2>
+<p>为什么要修改，官方yaml默认会新建一个名为kubernetes-dashboard的空间，感觉没有必要，就跟kube-system放一起，参考其他文档的同学稍微注意下。</p>
+<pre><code>sed -i &#39;/namespace/ s/kubernetes-dashboard/kube-system/g&#39; recommended.yaml
+</code></pre>
+<aside class="warning"><p>注意：最后部署成功之后，因为有5种方式访问dashboard：我们这里使用Nodport方式访问</p>
+</aside>
+<ul>
+<li>Nodport方式访问dashboard，service类型改为NodePort</li>
+<li>loadbalacer方式，service类型改为loadbalacer</li>
+<li>Ingress方式访问dashboard</li>
+<li>API server方式访问 dashboard</li>
+<li>kubectl proxy方式访问dashboard</li>
+</ul>
+<h2 is-upgraded>配置Nodport</h2>
+<p>修改yaml文件，将service改为NodePort vim recommended.yaml</p>
+<pre><code>kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    k8s-app: kubernetes-dashboard
+  name: kubernetes-dashboard
+  namespace: kube-system
+spec:
+  type: NodePort #增加内容
+  ports:
+    - port: 443
+      targetPort: 8443
+      nodePort: 30005 #增加内容
+  selector:
+    k8s-app: kubernetes-dashboard
+</code></pre>
+<h2 is-upgraded>部署应用</h2>
+<pre><code>kubectl apply -f recommended.yaml
+</code></pre>
+<h2 is-upgraded>检查运行状态</h2>
+<pre><code>kubectl get pod --namespace=kube-system -o wide | grep dashboard
+ss -ntl|grep 30005
+</code></pre>
+<p>通过浏览器访问：https://master:31620</p>
+<p>因为我的应用运行在master上，又是NodePort方式，所以直接访问master的地址</p>
+<h2 is-upgraded>配置登录令牌</h2>
+<p>官方参考文档： https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md</p>
+<h3 is-upgraded>创建dashboard-adminuser.yaml</h3>
+<p>vim dashboard-adminuser.yaml</p>
+<pre><code>---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kube-system
+</code></pre>
+<h3 is-upgraded>新建管理员权限用户</h3>
+<pre><code>kubectl create -f dashboard-adminuser.yaml
+serviceaccount/admin-user created
+</code></pre>
+<h3 is-upgraded>获取token</h3>
+<pre><code>kubectl -n kube-system get secret $(kubectl -n kube-system  get sa/admin-user -o jsonpath=&#34;{.secrets[0].name}&#34;) -o go-template=&#34;&#123;&#123;.data.token | base64decode}}&#34;
+</code></pre>
+<p>复制令牌并将其粘贴到登录屏幕上的输入令牌字段中。</p>
 
 
       </google-codelab-step>
